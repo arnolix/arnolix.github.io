@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="nginx location rewrite," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="1. location正则写法一个示例：123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051location  = / &amp;#123;  # 精确匹配 / ，主机名后面不能带任何字符串  [ configuration A ]&amp;#125;location  / &amp;#1">
+<meta name="keywords" content="nginx location rewrite">
+<meta property="og:type" content="article">
+<meta property="og:title" content="nginx之location和rewrite详解">
+<meta property="og:url" content="http://www.arnolix.com/2018/06/20/nginx之location和rewrite详解/index.html">
+<meta property="og:site_name" content="arnolix&#39;s silence">
+<meta property="og:description" content="1. location正则写法一个示例：123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051location  = / &amp;#123;  # 精确匹配 / ，主机名后面不能带任何字符串  [ configuration A ]&amp;#125;location  / &amp;#1">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-04T10:13:38.335Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="nginx之location和rewrite详解">
+<meta name="twitter:description" content="1. location正则写法一个示例：123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051location  = / &amp;#123;  # 精确匹配 / ，主机名后面不能带任何字符串  [ configuration A ]&amp;#125;location  / &amp;#1">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.arnolix.com/2018/06/20/nginx之location和rewrite详解/"/>
+
+
+
+
+
+  <title>nginx之location和rewrite详解 | arnolix's silence</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">arnolix's silence</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">你的努力决定了你的下限，你的格局决定了你的上限。</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.arnolix.com/2018/06/20/nginx之location和rewrite详解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="arnolix">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/biezheng.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="arnolix's silence">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">nginx之location和rewrite详解</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-20T14:34:33+08:00">
+                2018-06-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/nginx/" itemprop="url" rel="index">
+                    <span itemprop="name">nginx</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/06/20/nginx之location和rewrite详解/" class="leancloud_visitors" data-flag-title="nginx之location和rewrite详解">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="1-location正则写法"><a href="#1-location正则写法" class="headerlink" title="1. location正则写法"></a>1. location正则写法</h2><p>一个示例：<br><figure class="highlight nginx"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div></pre></td><td class="code"><pre><div class="line"><span class="attribute">location</span>  = / &#123;</div><div class="line">  <span class="comment"># 精确匹配 / ，主机名后面不能带任何字符串</span></div><div class="line">  [ configuration A ]</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="attribute">location</span>  / &#123;</div><div class="line">  <span class="comment"># 因为所有的地址都以 / 开头，所以这条规则将匹配到所有请求</span></div><div class="line">  <span class="comment"># 但是正则和最长字符串会优先匹配</span></div><div class="line">  [ configuration B ]</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="attribute">location</span> /documents/ &#123;</div><div class="line">  <span class="comment"># 匹配任何以 /documents/ 开头的地址，匹配符合以后，还要继续往下搜索</span></div><div class="line">  <span class="comment"># 只有后面的正则表达式没有匹配到时，这一条才会采用这一条</span></div><div class="line">  [ configuration C ]</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="attribute">location</span> <span class="regexp">~ /documents/Abc</span> &#123;</div><div class="line">  <span class="comment"># 匹配任何以 /documents/Abc 开头的地址，匹配符合以后，还要继续往下搜索</span></div><div class="line">  <span class="comment"># 只有后面的正则表达式没有匹配到时，这一条才会采用这一条</span></div><div class="line">  [ configuration CC ]</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="attribute">location</span><span class="regexp"> ^~</span> /images/ &#123;</div><div class="line">  <span class="comment"># 匹配任何以 /images/ 开头的地址，匹配符合以后，停止往下搜索正则，采用这一条。</span></div><div class="line">  [ configuration D ]</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="attribute">location</span> <span class="regexp">~* \.(gif|jpg|jpeg)$</span> &#123;</div><div class="line">  <span class="comment"># 匹配所有以 gif,jpg或jpeg 结尾的请求</span></div><div class="line">  <span class="comment"># 然而，所有请求 /images/ 下的图片会被 config D 处理，因为 ^~ 到达不了这一条正则</span></div><div class="line">  [ configuration E ]</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="attribute">location</span> /images/ &#123;</div><div class="line">  <span class="comment"># 字符匹配到 /images/，继续往下，会发现 ^~ 存在</span></div><div class="line">  [ configuration F ]</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="attribute">location</span> /images/abc &#123;</div><div class="line">  <span class="comment"># 最长字符匹配到 /images/abc，继续往下，会发现 ^~ 存在</span></div><div class="line">  <span class="comment"># F与G的放置顺序是没有关系的</span></div><div class="line">  [ configuration G ]</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="attribute">location</span> <span class="regexp">~ /images/abc/</span> &#123;</div><div class="line">  <span class="comment"># 只有去掉 config D 才有效：先最长匹配 config G 开头的地址，继续往下搜索，匹配到这一条正则，采用</span></div><div class="line">    [ configuration H ]</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="attribute">location</span> <span class="regexp">~* /js/.*/\.js</span></div></pre></td></tr></table></figure></p>
+<p>已=开头表示精确匹配<br>如 A 中只匹配根目录结尾的请求，后面不能带任何字符串。<br>^~ 开头表示uri以某个常规字符串开头，不是正则匹配<br>~ 开头表示区分大小写的正则匹配;<br>~* 开头表示不区分大小写的正则匹配<br>/ 通用匹配, 如果没有其它匹配,任何请求都会匹配到<br>顺序 no优先级：<br>(location =) &gt; (location 完整路径) &gt; (location ^~ 路径) &gt; (location ~,~* 正则顺序) &gt; (location 部分起始路径) &gt; (/)</p>
+<p>上面的匹配结果<br>按照上面的location写法，以下的匹配示例成立：</p>
+<p>/ -&gt; config A<br>精确完全匹配，即使/index.html也匹配不了<br>/downloads/download.html -&gt; config B<br>匹配B以后，往下没有任何匹配，采用B<br>/images/1.gif -&gt; configuration D<br>匹配到F，往下匹配到D，停止往下<br>/images/abc/def -&gt; config D<br>最长匹配到G，往下匹配D，停止往下<br>你可以看到 任何以/images/开头的都会匹配到D并停止，FG写在这里是没有任何意义的，H是永远轮不到的，这里只是为了说明匹配顺序<br>/documents/document.html -&gt; config C<br>匹配到C，往下没有任何匹配，采用C<br>/documents/1.jpg -&gt; configuration E<br>匹配到C，往下正则匹配到E<br>/documents/Abc.jpg -&gt; config CC<br>最长匹配到C，往下正则顺序匹配到CC，不会往下到E<br>实际使用建议<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">个人觉得至少有三个匹配规则定义，如下：</div><div class="line"><span class="comment">#直接匹配网站根，通过域名访问网站首页比较频繁，使用这个会加速处理，官网如是说。</span></div><div class="line"><span class="comment">#这里是直接转发给后端应用服务器了，也可以是一个静态首页</span></div><div class="line"><span class="comment"># 第一个必选规则</span></div><div class="line">location = / &#123;</div><div class="line">    proxy_pass http://tomcat:<span class="number">8080</span>/index</div><div class="line">&#125;</div><div class="line"><span class="comment"># 第二个必选规则是处理静态文件请求，这是nginx作为http服务器的强项</span></div><div class="line"><span class="comment"># 有两种配置模式，目录匹配或后缀匹配,任选其一或搭配使用</span></div><div class="line">location ^~ /static/ &#123;</div><div class="line">    root /webroot/static/;</div><div class="line">&#125;</div><div class="line">location ~* \.(gif|jpg|jpeg|png|css|js|ico)$ &#123;</div><div class="line">    root /webroot/res/;</div><div class="line">&#125;</div><div class="line"><span class="comment">#第三个规则就是通用规则，用来转发动态请求到后端应用服务器</span></div><div class="line"><span class="comment">#非静态文件请求就默认是动态请求，自己根据实际把握</span></div><div class="line"><span class="comment">#毕竟目前的一些框架的流行，带.php,.jsp后缀的情况很少了</span></div><div class="line">location / &#123;</div><div class="line">    proxy_pass http://tomcat:<span class="number">8080</span>/</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<blockquote>
+<p><a href="http://tengine.taobao.org/book/chapter_02.html" target="_blank" rel="external">http://tengine.taobao.org/book/chapter_02.html</a><br><a href="http://nginx.org/en/docs/http/ngx_http_rewrite_module.html" target="_blank" rel="external">http://nginx.org/en/docs/http/ngx_http_rewrite_module.html</a></p>
+</blockquote>
+<h2 id="2-Rewrite规则"><a href="#2-Rewrite规则" class="headerlink" title="2. Rewrite规则"></a>2. Rewrite规则</h2><p>rewrite功能就是，使用nginx提供的全局变量或自己设置的变量，结合正则表达式和标志位实现url重写以及重定向。rewrite只能放在server{},location{},if{}中，并且只能对域名后边的除去传递的参数外的字符串起作用，例如 <a href="http://seanlook.com/a/we/index.php?id=1&amp;u=str" target="_blank" rel="external">http://seanlook.com/a/we/index.php?id=1&amp;u=str</a> 只对/a/we/index.php重写。语法rewrite regex replacement [flag];</p>
+<p>如果相对域名或参数字符串起作用，可以使用全局变量匹配，也可以使用proxy_pass反向代理。</p>
+<p>表明看rewrite和location功能有点像，都能实现跳转，主要区别在于rewrite是在同一域名内更改获取资源的路径，而location是对一类路径做控制访问或反向代理，可以proxy_pass到其他机器。很多情况下rewrite也会写在location里，它们的执行顺序是：</p>
+<p>执行server块的rewrite指令<br>执行location匹配<br>执行选定的location中的rewrite指令<br>如果其中某步URI被重写，则重新循环执行1-3，直到找到真实存在的文件；循环超过10次，则返回500 Internal Server Error错误。</p>
+<h3 id="2-1-flag标志位"><a href="#2-1-flag标志位" class="headerlink" title="2.1 flag标志位"></a>2.1 flag标志位</h3><p>last : 相当于Apache的[L]标记，表示完成rewrite<br>break : 停止执行当前虚拟主机的后续rewrite指令集<br>redirect : 返回302临时重定向，地址栏会显示跳转后的地址<br>permanent : 返回301永久重定向，地址栏会显示跳转后的地址<br>因为301和302不能简单的只返回状态码，还必须有重定向的URL，这就是return指令无法返回301,302的原因了。这里 last 和 break 区别有点难以理解：</p>
+<p>last一般写在server和if中，而break一般使用在location中<br>last不终止重写后的url匹配，即新的url会再从server走一遍匹配流程，而break终止重写后的匹配<br>break和last都能组织继续执行后面的rewrite指令</p>
+<h3 id="2-2-if指令与全局变量"><a href="#2-2-if指令与全局变量" class="headerlink" title="2.2 if指令与全局变量"></a>2.2 if指令与全局变量</h3><p>if判断指令<br>语法为if(condition){…}，对给定的条件condition进行判断。如果为真，大括号内的rewrite指令将被执行，if条件(conditon)可以是如下任何内容：</p>
+<p>当表达式只是一个变量时，如果值为空或任何以0开头的字符串都会当做false<br>直接比较变量和内容时，使用=或!=<br>~正则表达式匹配，~*不区分大小写的匹配，!~区分大小写的不匹配<br>-f和!-f用来判断是否存在文件<br>-d和!-d用来判断是否存在目录<br>-e和!-e用来判断是否存在文件或目录<br>-x和!-x用来判断文件是否可执行</p>
+<p>例如：<br><figure class="highlight nginx"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="attribute">if</span> (<span class="variable">$http_user_agent</span> <span class="regexp">~ MSIE)</span> &#123;</div><div class="line">    <span class="attribute">rewrite</span><span class="regexp"> ^(.*)$</span> /msie/<span class="variable">$1</span> <span class="literal">break</span>;</div><div class="line">&#125; //如果UA包含"MSIE"，rewrite请求到/msid/目录下</div><div class="line"></div><div class="line">if ($http_cookie ~* "id=([^;]+)(?:;|$)") &#123;</div><div class="line">    <span class="attribute">set</span> <span class="variable">$id</span> <span class="variable">$1</span>;</div><div class="line"> &#125; //如果cookie匹配正则，设置变量$id等于正则引用部分</div><div class="line"></div><div class="line"><span class="attribute">if</span> (<span class="variable">$request_method</span> = POST) &#123;</div><div class="line">    <span class="attribute">return</span> <span class="number">405</span>;</div><div class="line">&#125; //如果提交方法为POST，则返回状态405（Method not allowed）。return不能返回301,302</div><div class="line"></div><div class="line"><span class="attribute">if</span> (<span class="variable">$slow</span>) &#123;</div><div class="line">    <span class="attribute">limit_rate</span> <span class="number">10k</span>;</div><div class="line">&#125; //限速，$slow可以通过 set 指令设置</div><div class="line"></div><div class="line"><span class="attribute">if</span> (!-f <span class="variable">$request_filename</span>)&#123;</div><div class="line">    break;</div><div class="line">    <span class="attribute">proxy_pass</span>  http://127.0.0.1;</div><div class="line">&#125; //如果请求的文件名不存在，则反向代理到localhost 。这里的break也是停止rewrite检查</div><div class="line"></div><div class="line"><span class="attribute">if</span> (<span class="variable">$args</span> <span class="regexp">~ post=140)</span>&#123;</div><div class="line">    <span class="attribute">rewrite</span><span class="regexp"> ^</span> http://example.com/ <span class="literal">permanent</span>;</div><div class="line">&#125; //如果query string中包含"post=140"，永久重定向到example.com</div><div class="line"></div><div class="line"><span class="attribute">location</span> <span class="regexp">~* \.(gif|jpg|png|swf|flv)$</span> &#123;</div><div class="line">    <span class="attribute">valid_referers</span> <span class="literal">none</span> <span class="literal">blocked</span> www.jefflei.com www.leizhenfang.com;</div><div class="line">    <span class="attribute">if</span> (<span class="variable">$invalid_referer</span>) &#123;</div><div class="line">        <span class="attribute">return</span> <span class="number">404</span>;</div><div class="line">    &#125; //防盗链</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>全局变量<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div></pre></td><td class="code"><pre><div class="line">下面是可以用作if判断的全局变量</div><div class="line">$args                    #请求中的参数值</div><div class="line">$query_string            #同 $args</div><div class="line">$arg_NAME                #GET请求中NAME的值</div><div class="line">$is_args                 #如果请求中有参数，值为"?"，否则为空字符串</div><div class="line">$uri                     #请求中的当前URI(不带请求参数，参数位于$args)，可以不同于浏览器传递的$request_uri的值，它可以通过内部重定向，或者使用index指令进行修改，$uri不包含主机名，如"/foo/bar.html"。</div><div class="line">$document_uri            #同 $uri</div><div class="line">$document_root           #当前请求的文档根目录或别名</div><div class="line">$host                    #优先级：HTTP请求行的主机名&gt;"HOST"请求头字段&gt;符合请求的服务器名.请求中的主机头字段，如果请求中的主机头不可用，则为服务器处理请求的服务器名称</div><div class="line">$hostname                #主机名</div><div class="line">$https                   #如果开启了SSL安全模式，值为"on"，否则为空字符串。</div><div class="line">$binary_remote_addr      #客户端地址的二进制形式，固定长度为4个字节</div><div class="line">$body_bytes_sent         #传输给客户端的字节数，响应头不计算在内；这个变量和Apache的mod_log_config模块中的"%B"参数保持兼容</div><div class="line">$bytes_sent              #传输给客户端的字节数</div><div class="line">$connection              #TCP连接的序列号</div><div class="line">$connection_requests     #TCP连接当前的请求数量</div><div class="line">$content_length          #"Content-Length" 请求头字段</div><div class="line">$content_type            #"Content-Type" 请求头字段</div><div class="line">$cookie_name             #cookie名称</div><div class="line">$limit_rate              #用于设置响应的速度限制</div><div class="line">$msec                    #当前的Unix时间戳</div><div class="line">$nginx_version           #nginx版本</div><div class="line">$pid                     #工作进程的PID</div><div class="line">$pipe                    #如果请求来自管道通信，值为"p"，否则为"."</div><div class="line">$proxy_protocol_addr     #获取代理访问服务器的客户端地址，如果是直接访问，该值为空字符串</div><div class="line">$realpath_root           #当前请求的文档根目录或别名的真实路径，会将所有符号连接转换为真实路径</div><div class="line">$remote_addr             #客户端地址</div><div class="line">$remote_port             #客户端端口</div><div class="line">$remote_user             #用于HTTP基础认证服务的用户名</div><div class="line">$request                 #代表客户端的请求地址</div><div class="line">$request_body            #客户端的请求主体：此变量可在location中使用，将请求主体通过proxy_pass，fastcgi_pass，uwsgi_pass和scgi_pass传递给下一级的代理服务器</div><div class="line">$request_body_file       #将客户端请求主体保存在临时文件中。文件处理结束后，此文件需删除。如果需要之一开启此功能，需要设置client_body_in_file_only。如果将次文件传 递给后端的代理服务器，需要禁用request body，即设置proxy_pass_request_body off，fastcgi_pass_request_body off，uwsgi_pass_request_body off，or scgi_pass_request_body off</div><div class="line">$request_completion      #如果请求成功，值为"OK"，如果请求未完成或者请求不是一个范围请求的最后一部分，则为空</div><div class="line">$request_filename        #当前连接请求的文件路径，由root或alias指令与URI请求生成</div><div class="line">$request_length          #请求的长度 (包括请求的地址，http请求头和请求主体)</div><div class="line">$request_method          #HTTP请求方法，通常为"GET"或"POST"</div><div class="line">$request_time            #处理客户端请求使用的时间,单位为秒，精度毫秒； 从读入客户端的第一个字节开始，直到把最后一个字符发送给客户端后进行日志写入为止。</div><div class="line">$request_uri             #这个变量等于包含一些客户端请求参数的原始URI，它无法修改，请查看$uri更改或重写URI，不包含主机名，例如："/cnphp/test.php?arg=freemouse"</div><div class="line">$scheme                  #请求使用的Web协议，"http" 或 "https"</div><div class="line">$server_addr             #服务器端地址，需要注意的是：为了避免访问linux系统内核，应将ip地址提前设置在配置文件中</div><div class="line">$server_name             #服务器名</div><div class="line">$server_port             #服务器端口</div><div class="line">$server_protocol         #服务器的HTTP版本，通常为 "HTTP/1.0" 或 "HTTP/1.1"</div><div class="line">$status                  #HTTP响应代码</div><div class="line">$time_iso8601            #服务器时间的ISO 8610格式</div><div class="line">$time_local              #服务器时间（LOG Format 格式）</div><div class="line">$cookie_NAME             #客户端请求Header头中的cookie变量，前缀"$cookie_"加上cookie名称的变量，该变量的值即为cookie名称的值</div><div class="line">$http_NAME               #匹配任意请求头字段；变量名中的后半部分NAME可以替换成任意请求头字段，如在配置文件中需要获取http请求头："Accept-Language"，$http_accept_language即可</div><div class="line">$http_cookie</div><div class="line">$http_host               #请求地址，即浏览器中你输入的地址（IP或域名）</div><div class="line">$http_referer            #url跳转来源,用来记录从那个页面链接访问过来的</div><div class="line">$http_user_agent         #用户终端浏览器等信息</div><div class="line">$http_x_forwarded_for</div><div class="line">$sent_http_NAME          #可以设置任意http响应头字段；变量名中的后半部分NAME可以替换成任意响应头字段，如需要设置响应头Content-length，$sent_http_content_length即可</div><div class="line">$sent_http_cache_control</div><div class="line">$sent_http_connection</div><div class="line">$sent_http_content_type</div><div class="line">$sent_http_keep_alive</div><div class="line">$sent_http_last_modified</div><div class="line">$sent_http_location</div><div class="line">$sent_http_transfer_encoding</div><div class="line"></div><div class="line">例：http://localhost:88/test1/test2/test.php</div><div class="line">$host：localhost</div><div class="line">$server_port：88</div><div class="line">$request_uri：http://localhost:88/test1/test2/test.php</div><div class="line">$document_uri：/test1/test2/test.php</div><div class="line">$document_root：/var/www/html</div><div class="line">$request_filename：/var/www/html/test1/test2/test.php</div></pre></td></tr></table></figure></p>
+<h3 id="2-3-常用正则"><a href="#2-3-常用正则" class="headerlink" title="2.3 常用正则"></a>2.3 常用正则</h3><p>. ： 匹配除换行符以外的任意字符<br>? ： 重复0次或1次<br>+ ： 重复1次或更多次<br>* ： 重复0次或更多次<br>\d ：匹配数字<br>^ ： 匹配字符串的开始<br>$ ： 匹配字符串的介绍<br>{n} ： 重复n次<br>{n,} ： 重复n次或更多次<br>[c] ： 匹配单个字符c<br>[a-z] ： 匹配a-z小写字母的任意一个<br>小括号()之间匹配的内容，可以在后面通过$1来引用，$2表示的是前面第二个()里的内容。正则里面容易让人困惑的是\转义特殊字符。</p>
+<h3 id="2-4-rewrite实例"><a href="#2-4-rewrite实例" class="headerlink" title="2.4 rewrite实例"></a>2.4 rewrite实例</h3><p>例1：<br><figure class="highlight nginx"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="section">http</span> &#123;</div><div class="line">    <span class="comment"># 定义image日志格式</span></div><div class="line">    <span class="attribute">log_format</span> imagelog <span class="string">'[<span class="variable">$time_local</span>] '</span> <span class="variable">$image_file</span> <span class="string">' '</span> <span class="variable">$image_type</span> <span class="string">' '</span> <span class="variable">$body_bytes_sent</span> <span class="string">' '</span> <span class="variable">$status</span>;</div><div class="line">    <span class="comment"># 开启重写日志</span></div><div class="line">    <span class="attribute">rewrite_log</span> <span class="literal">on</span>;</div><div class="line"></div><div class="line">    <span class="section">server</span> &#123;</div><div class="line">        <span class="attribute">root</span> /home/www;</div><div class="line"></div><div class="line">        <span class="attribute">location</span> / &#123;</div><div class="line">                <span class="comment"># 重写规则信息</span></div><div class="line">                <span class="attribute">error_log</span> logs/rewrite.log <span class="literal">notice</span>;</div><div class="line">                <span class="comment"># 注意这里要用‘’单引号引起来，避免&#123;&#125;</span></div><div class="line">                <span class="attribute">rewrite</span> <span class="string">'^/images/([a-z]&#123;2&#125;)/([a-z0-9]&#123;5&#125;)/(.*)\.(png|jpg|gif)$'</span> /data?file=<span class="variable">$3</span>.<span class="variable">$4</span>;</div><div class="line">                <span class="comment"># 注意不能在上面这条规则后面加上“last”参数，否则下面的set指令不会执行</span></div><div class="line">                <span class="attribute">set</span> <span class="variable">$image_file</span> <span class="variable">$3</span>;</div><div class="line">                <span class="attribute">set</span> <span class="variable">$image_type</span> <span class="variable">$4</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="attribute">location</span> /data &#123;</div><div class="line">                <span class="comment"># 指定针对图片的日志格式，来分析图片类型和大小</span></div><div class="line">                <span class="attribute">access_log</span> logs/images.log mian;</div><div class="line">                <span class="attribute">root</span> /data/images;</div><div class="line">                <span class="comment"># 应用前面定义的变量。判断首先文件在不在，不在再判断目录在不在，如果还不在就跳转到最后一个url里</span></div><div class="line">                <span class="attribute">try_files</span> /<span class="variable">$arg_file</span> /image404.html;</div><div class="line">        &#125;</div><div class="line">        <span class="attribute">location</span> = /image404.html &#123;</div><div class="line">                <span class="comment"># 图片不存在返回特定的信息</span></div><div class="line">                <span class="attribute">return</span> <span class="number">404</span> <span class="string">"image not found\n"</span>;</div><div class="line">        &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>对形如/images/ef/uh7b3/test.png的请求，重写到/data?file=test.png，于是匹配到location /data，先看/data/images/test.png文件存不存在，如果存在则正常响应，如果不存在则重写tryfiles到新的image404 location，直接返回404状态码。</p>
+<p>例2：<br><figure class="highlight nginx"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="attribute">rewrite</span><span class="regexp"> ^/images/(.*)_(\d+)x(\d+)\.(png|jpg|gif)$</span> /resizer/<span class="variable">$1</span>.<span class="variable">$4</span>?width=<span class="variable">$2</span>&amp;height=<span class="variable">$3</span>? <span class="literal">last</span>;</div></pre></td></tr></table></figure></p>
+<p>对形如/images/bla_500x400.jpg的文件请求，重写到/resizer/bla.jpg?width=500&amp;height=400地址，并会继续尝试匹配location。</p>
+<p>例3：<br>见 ssl部分页面加密 。</p>
+<p>参考</p>
+<blockquote>
+<p><a href="http://www.nginx.cn/216.html" target="_blank" rel="external">http://www.nginx.cn/216.html</a><br><a href="http://www.ttlsa.com/nginx/nginx-rewriting-rules-guide/" target="_blank" rel="external">http://www.ttlsa.com/nginx/nginx-rewriting-rules-guide/</a><br>老僧系列nginx之rewrite规则快速上手<br><a href="http://fantefei.blog.51cto.com/2229719/919431" target="_blank" rel="external">http://fantefei.blog.51cto.com/2229719/919431</a></p>
+</blockquote>
+
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+      <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        
+
+      </div>
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>Enjoy it ? Donate me !  欣赏此文？求鼓励，求支持！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/reward/wechatpay.png" alt="arnolix wechatpay/微信支付"/>
+        <p>wechatpay/微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/reward/alipay.png" alt="arnolix alipay/支付宝"/>
+        <p>alipay/支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/nginx-location-rewrite/" rel="tag"># nginx location rewrite</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/28/创建TLS证书和秘钥/" rel="next" title="创建TLS证书和秘钥">
+                <i class="fa fa-chevron-left"></i> 创建TLS证书和秘钥
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/10/filtering/" rel="prev" title="filtering">
+                filtering <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!--MOB SHARE BEGIN-->
+<div class="-mob-share-ui-button -mob-share-open">分享</div>
+<div class="-mob-share-ui" style="display: none">
+    <ul class="-mob-share-list">
+        <li class="-mob-share-weibo"><p>新浪微博</p></li>
+        <li class="-mob-share-tencentweibo"><p>腾讯微博</p></li>
+        <li class="-mob-share-qzone"><p>QQ空间</p></li>
+        <li class="-mob-share-qq"><p>QQ好友</p></li>
+        <li class="-mob-share-weixin"><p>微信</p></li>
+        <li class="-mob-share-douban"><p>豆瓣</p></li>
+        <li class="-mob-share-renren"><p>人人网</p></li>
+        <li class="-mob-share-kaixin"><p>开心网</p></li>
+        <li class="-mob-share-facebook"><p>Facebook</p></li>
+        <li class="-mob-share-twitter"><p>Twitter</p></li>
+        <li class="-mob-share-pocket"><p>Pocket</p></li>
+        <li class="-mob-share-google"><p>Google+</p></li>
+        <li class="-mob-share-youdao"><p>有道云笔记</p></li>
+        <li class="-mob-share-mingdao"><p>明道</p></li>
+        <li class="-mob-share-pengyou"><p>朋友网</p></li>
+        <li class="-mob-share-tumblr"><p>Tumblr</p></li>
+        <li class="-mob-share-instapaper"><p>Instapaper</p></li>
+        <li class="-mob-share-linkedin"><p>LinkedIn</p></li>
+    </ul>
+    <div class="-mob-share-close">取消</div>
+</div>
+<div class="-mob-share-ui-bg"></div>
+<script id="-mob-share" src="//f1.webshare.mob.com/code/mob-share.js?appkey=2169bf5b393ca"></script>
+<!--MOB SHARE END-->
+
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8zMTE3NC83NzIz"></div>
+    </div>
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/biezheng.png"
+                alt="arnolix" />
+            
+              <p class="site-author-name" itemprop="name">arnolix</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-location正则写法"><span class="nav-number">1.</span> <span class="nav-text">1. location正则写法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Rewrite规则"><span class="nav-number">2.</span> <span class="nav-text">2. Rewrite规则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-flag标志位"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 flag标志位</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-if指令与全局变量"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 if指令与全局变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-常用正则"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 常用正则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-rewrite实例"><span class="nav-number">2.4.</span> <span class="nav-text">2.4 rewrite实例</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2017 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">xuaibao</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user">本站访客数</i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye">本站总访问数</i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("uuE7RULgw0fx1p8jLesrbYBP-gzGzoHsz", "MQ4GrFlRns4KQWiFMpvIXLDj");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/src/exturl.js?v=5.1.3"></script>
+
+
+</body>
+</html>

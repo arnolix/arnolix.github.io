@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="filtering, restframework, djangoframework, drf, drf-filtering," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="官方原文链接    过滤REST framework 的通用列表视图的默认行为是从模型管理器返回整个查询集。通常你会希望 API 限制查询集返回的条目。 筛选 GenericAPIView 子类的查询集的最简单方法是重写 .get_queryset() 方法。 重写此方法允许你以多种不同方式自定义视图返回的查询集。 根据当前用户进行过滤你可能需要过滤查询集，以确保只返回与当前通过身份验证的用户发">
+<meta name="keywords" content="filtering, restframework, djangoframework, drf, drf-filtering">
+<meta property="og:type" content="article">
+<meta property="og:title" content="filtering">
+<meta property="og:url" content="http://www.arnolix.com/2018/09/10/filtering/index.html">
+<meta property="og:site_name" content="arnolix&#39;s silence">
+<meta property="og:description" content="官方原文链接    过滤REST framework 的通用列表视图的默认行为是从模型管理器返回整个查询集。通常你会希望 API 限制查询集返回的条目。 筛选 GenericAPIView 子类的查询集的最简单方法是重写 .get_queryset() 方法。 重写此方法允许你以多种不同方式自定义视图返回的查询集。 根据当前用户进行过滤你可能需要过滤查询集，以确保只返回与当前通过身份验证的用户发">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.django-rest-framework.org/img/filter-controls.png">
+<meta property="og:image" content="http://www.django-rest-framework.org/img/search-filter.png">
+<meta property="og:image" content="http://www.django-rest-framework.org/img/ordering-filter.png">
+<meta property="og:updated_time" content="2018-09-10T10:12:08.744Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="filtering">
+<meta name="twitter:description" content="官方原文链接    过滤REST framework 的通用列表视图的默认行为是从模型管理器返回整个查询集。通常你会希望 API 限制查询集返回的条目。 筛选 GenericAPIView 子类的查询集的最简单方法是重写 .get_queryset() 方法。 重写此方法允许你以多种不同方式自定义视图返回的查询集。 根据当前用户进行过滤你可能需要过滤查询集，以确保只返回与当前通过身份验证的用户发">
+<meta name="twitter:image" content="http://www.django-rest-framework.org/img/filter-controls.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.arnolix.com/2018/09/10/filtering/"/>
+
+
+
+
+
+  <title>filtering | arnolix's silence</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">arnolix's silence</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">你的努力决定了你的下限，你的格局决定了你的上限。</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.arnolix.com/2018/09/10/filtering/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="arnolix">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/biezheng.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="arnolix's silence">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">filtering</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-10T18:09:34+08:00">
+                2018-09-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/restframework/" itemprop="url" rel="index">
+                    <span itemprop="name">restframework</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/09/10/filtering/" class="leancloud_visitors" data-flag-title="filtering">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p><a href="http://www.django-rest-framework.org/api-guide/filtering/" target="_blank" rel="external">官方原文链接</a>  </p>
+</blockquote>
+<h1 id="过滤"><a href="#过滤" class="headerlink" title="过滤"></a>过滤</h1><p>REST framework 的通用列表视图的默认行为是从模型管理器返回整个查询集。通常你会希望 API 限制查询集返回的条目。</p>
+<p>筛选 <code>GenericAPIView</code> 子类的查询集的最简单方法是重写 <code>.get_queryset()</code> 方法。</p>
+<p>重写此方法允许你以多种不同方式自定义视图返回的查询集。</p>
+<h2 id="根据当前用户进行过滤"><a href="#根据当前用户进行过滤" class="headerlink" title="根据当前用户进行过滤"></a>根据当前用户进行过滤</h2><p>你可能需要过滤查询集，以确保只返回与当前通过身份验证的用户发出的请求相关的结果。</p>
+<p>你可以基于 <code>request.user</code> 的值进行筛选来完成此操作。</p>
+<p>例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> myapp.models <span class="keyword">import</span> Purchase</div><div class="line"><span class="keyword">from</span> myapp.serializers <span class="keyword">import</span> PurchaseSerializer</div><div class="line"><span class="keyword">from</span> rest_framework <span class="keyword">import</span> generics</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">PurchaseList</span><span class="params">(generics.ListAPIView)</span>:</span></div><div class="line">    serializer_class = PurchaseSerializer</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_queryset</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="string">"""</span></div><div class="line"><span class="string">        This view should return a list of all the purchases</span></div><div class="line"><span class="string">        for the currently authenticated user.</span></div><div class="line"><span class="string">        """</span></div><div class="line">        user = self.request.user</div><div class="line">        <span class="keyword">return</span> Purchase.objects.filter(purchaser=user)</div></pre></td></tr></table></figure>
+<h2 id="根据-URL-进行过滤"><a href="#根据-URL-进行过滤" class="headerlink" title="根据 URL 进行过滤"></a>根据 URL 进行过滤</h2><p>另一种过滤方式可能涉及基于 URL 的某个部分限制查询集。</p>
+<p>例如，如果你的 URL 配置包含这样的条目：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">url(<span class="string">'^purchases/(?P&lt;username&gt;.+)/$'</span>, PurchaseList.as_view()),</div></pre></td></tr></table></figure>
+<p>然后，你可以编写一个视图，返回由 URL 的用户名部分过滤的 purchase 查询集：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">PurchaseList</span><span class="params">(generics.ListAPIView)</span>:</span></div><div class="line">    serializer_class = PurchaseSerializer</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_queryset</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="string">"""</span></div><div class="line"><span class="string">        This view should return a list of all the purchases for</span></div><div class="line"><span class="string">        the user as determined by the username portion of the URL.</span></div><div class="line"><span class="string">        """</span></div><div class="line">        username = self.kwargs[<span class="string">'username'</span>]</div><div class="line">        <span class="keyword">return</span> Purchase.objects.filter(purchaser__username=username)</div></pre></td></tr></table></figure>
+<h2 id="根据查询参数进行过滤"><a href="#根据查询参数进行过滤" class="headerlink" title="根据查询参数进行过滤"></a>根据查询参数进行过滤</h2><p>过滤初始查询集的最后一个例子是根据 url 中的查询参数确定初始查询集。</p>
+<p>我们可以覆盖 <code>.get_queryset()</code> 来处理诸如 <code>http://example.com/api/purchases?username=denvercoder9</code> 的URL，并且只有在 URL 中包含 <code>username</code> 参数时才过滤查询集：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">PurchaseList</span><span class="params">(generics.ListAPIView)</span>:</span></div><div class="line">    serializer_class = PurchaseSerializer</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_queryset</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="string">"""</span></div><div class="line"><span class="string">        Optionally restricts the returned purchases to a given user,</span></div><div class="line"><span class="string">        by filtering against a `username` query parameter in the URL.</span></div><div class="line"><span class="string">        """</span></div><div class="line">        queryset = Purchase.objects.all()</div><div class="line">        username = self.request.query_params.get(<span class="string">'username'</span>, <span class="keyword">None</span>)</div><div class="line">        <span class="keyword">if</span> username <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</div><div class="line">            queryset = queryset.filter(purchaser__username=username)</div><div class="line">        <span class="keyword">return</span> queryset</div></pre></td></tr></table></figure>
+<hr>
+<h1 id="通用过滤器"><a href="#通用过滤器" class="headerlink" title="通用过滤器"></a>通用过滤器</h1><p>除了能够覆盖默认的查询集外，REST framework 还包括对通用过滤后端的支​​持，使你可以轻松构建复杂的搜索和过滤器。</p>
+<p>通用过滤器也可以在可浏览的 API 和管理 API 中将自己渲染为 HTML 控件。</p>
+<p><img src="http://www.django-rest-framework.org/img/filter-controls.png" alt="Filter Example"></p>
+<h2 id="设置过滤器后端"><a href="#设置过滤器后端" class="headerlink" title="设置过滤器后端"></a>设置过滤器后端</h2><p>可以使用 <code>DEFAULT_FILTER_BACKENDS</code> setting 全局设置默认的过滤器后端。例如。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">REST_FRAMEWORK = &#123;</div><div class="line">    <span class="string">'DEFAULT_FILTER_BACKENDS'</span>: (<span class="string">'django_filters.rest_framework.DjangoFilterBackend'</span>,)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>你还可以使用基于 <code>GenericAPIView</code> 类的视图，在每个视图或视图集的基础上设置过滤器后端。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> django_filters.rest_framework</div><div class="line"><span class="keyword">from</span> django.contrib.auth.models <span class="keyword">import</span> User</div><div class="line"><span class="keyword">from</span> myapp.serializers <span class="keyword">import</span> UserSerializer</div><div class="line"><span class="keyword">from</span> rest_framework <span class="keyword">import</span> generics</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserListView</span><span class="params">(generics.ListAPIView)</span>:</span></div><div class="line">    queryset = User.objects.all()</div><div class="line">    serializer_class = UserSerializer</div><div class="line">    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)</div></pre></td></tr></table></figure>
+<h2 id="过滤和对象查找"><a href="#过滤和对象查找" class="headerlink" title="过滤和对象查找"></a>过滤和对象查找</h2><p>请注意，如果为一个视图配置了一个过滤器后端，那么除了用于筛选列表视图之外，它还将用于筛选返回单个对象的查询集。</p>
+<p>例如，根据前面的示例以及 ID 为 <code>4675</code> 的产品，以下 URL 将返回相应的对象，或返回 404 响应，具体取决于给定产品实例是否满足过滤条件：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">http://example.com/api/products/4675/?category=clothing&amp;max_price=10.00</div></pre></td></tr></table></figure>
+<h2 id="覆盖初始查询集"><a href="#覆盖初始查询集" class="headerlink" title="覆盖初始查询集"></a>覆盖初始查询集</h2><p>请注意，你可以同时重写的 <code>.get_queryset()</code> 和通用过滤，并且所有内容都将按预期工作。例如，如果产品与用户具有多对多关系，则可能需要编写一个如下所示的视图：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">PurchasedProductsList</span><span class="params">(generics.ListAPIView)</span>:</span></div><div class="line">    <span class="string">"""</span></div><div class="line"><span class="string">    Return a list of all the products that the authenticated</span></div><div class="line"><span class="string">    user has ever purchased, with optional filtering.</span></div><div class="line"><span class="string">    """</span></div><div class="line">    model = Product</div><div class="line">    serializer_class = ProductSerializer</div><div class="line">    filter_class = ProductFilter</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_queryset</span><span class="params">(self)</span>:</span></div><div class="line">        user = self.request.user</div><div class="line">        <span class="keyword">return</span> user.purchase_set.all()</div></pre></td></tr></table></figure>
+<hr>
+<h1 id="API-参考"><a href="#API-参考" class="headerlink" title="API 参考"></a>API 参考</h1><h2 id="DjangoFilterBackend"><a href="#DjangoFilterBackend" class="headerlink" title="DjangoFilterBackend"></a>DjangoFilterBackend</h2><p><code>django-filter</code> 库包含一个 <code>DjangoFilterBackend</code> 类，它支持 REST framework 对字段过滤进行高度定制。</p>
+<p>要使用 <code>DjangoFilterBackend</code>，首先安装 <code>django-filter</code>。然后将 <code>django_filters</code> 添加到 Django 的 <code>INSTALLED_APPS</code> 中</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">pip install django-filter</div></pre></td></tr></table></figure>
+<p>你现在应该将过滤器后端添加到设置中：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">REST_FRAMEWORK = &#123;</div><div class="line">    <span class="string">'DEFAULT_FILTER_BACKENDS'</span>: (<span class="string">'django_filters.rest_framework.DjangoFilterBackend'</span>,)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>或者将过滤器后端添加到单个视图或视图集。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> django_filters.rest_framework <span class="keyword">import</span> DjangoFilterBackend</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserListView</span><span class="params">(generics.ListAPIView)</span>:</span></div><div class="line">    ...</div><div class="line">    filter_backends = (DjangoFilterBackend,)</div></pre></td></tr></table></figure>
+<p>如果你只需要简单的基于等式的过滤，则可以在视图或视图集上设置 <code>filter_fields</code> 属性，列出你要过滤的一组字段。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProductList</span><span class="params">(generics.ListAPIView)</span>:</span></div><div class="line">    queryset = Product.objects.all()</div><div class="line">    serializer_class = ProductSerializer</div><div class="line">    filter_backends = (DjangoFilterBackend,)</div><div class="line">    filter_fields = (<span class="string">'category'</span>, <span class="string">'in_stock'</span>)</div></pre></td></tr></table></figure>
+<p>这将自动为给定字段创建一个 <code>FilterSet</code> 类，并允许你发出如下请求：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">http://example.com/api/products?category=clothing&amp;in_stock=True</div></pre></td></tr></table></figure>
+<p>对于更高级的过滤要求，你应该在视图上在指定 <code>FilterSet</code> 类。你可以在 <a href="https://django-filter.readthedocs.io/en/latest/index.html" target="_blank" rel="external">django-filter 文档</a>中阅读有关 <code>FilterSet</code> 的更多信息。还建议你阅读 <a href="https://django-filter.readthedocs.io/en/latest/guide/rest_framework.html" target="_blank" rel="external">DRF integration</a>。</p>
+<h2 id="SearchFilter"><a href="#SearchFilter" class="headerlink" title="SearchFilter"></a>SearchFilter</h2><p><code>SearchFilter</code> 类支持简单的基于单个查询参数的搜索，并且基于 Django 管理员的搜索功能。</p>
+<p>在使用时，可浏览的 API 将包含一个 <code>SearchFilter</code> 控件：</p>
+<p><img src="http://www.django-rest-framework.org/img/search-filter.png" alt="Search Filter"></p>
+<p><code>SearchFilter</code> 类将仅在视图具有 <code>search_fields</code> 属性集的情况下应用。<code>search_fields</code> 属性应该是模型上文本类型字段的名称列表，例如 <code>CharField</code> 或 <code>TextField</code>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserListView</span><span class="params">(generics.ListAPIView)</span>:</span></div><div class="line">    queryset = User.objects.all()</div><div class="line">    serializer_class = UserSerializer</div><div class="line">    filter_backends = (filters.SearchFilter,)</div><div class="line">    search_fields = (<span class="string">'username'</span>, <span class="string">'email'</span>)</div></pre></td></tr></table></figure>
+<p>这将允许客户端通过查询来过滤列表中的项目，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">http://example.com/api/users?search=russell</div></pre></td></tr></table></figure>
+<p>你还可以使用查找 API 双下划线表示法对 ForeignKey 或 ManyToManyField 执行相关查找：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">search_fields = (<span class="string">'username'</span>, <span class="string">'email'</span>, <span class="string">'profile__profession'</span>)</div></pre></td></tr></table></figure>
+<p>默认情况下，搜索将使用不区分大小写的部分匹配。搜索参数可能包含多个搜索词，它们应该是空格和（或）逗号分隔的。如果使用多个搜索条件，则只有在所有提供的条件匹配的情况下，对象才会返回到列表中。</p>
+<p>搜索行为可以通过将各种字符预先添加到 <code>search_fields</code> 来限制。</p>
+<ul>
+<li>‘^’ 匹配起始部分。</li>
+<li>‘=’ 完全匹配。</li>
+<li>‘@’ 全文搜索。（目前只支持 Django 的 MySQL 后端。）</li>
+<li>‘$’ 正则匹配。</li>
+</ul>
+<p>例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">search_fields = (<span class="string">'=username'</span>, <span class="string">'=email'</span>)</div></pre></td></tr></table></figure>
+<p>默认情况下，搜索参数被命名为 <code>&#39;search&#39;</code> ，但这可能会被 <code>SEARCH_PARAM</code> setting 覆盖。</p>
+<p>有关更多详细信息，请参阅 <a href="https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.search_fields" target="_blank" rel="external">Django 文档</a>。</p>
+<hr>
+<h2 id="OrderingFilter"><a href="#OrderingFilter" class="headerlink" title="OrderingFilter"></a>OrderingFilter</h2><p><code>OrderingFilter</code> 类支持简单查询参数控制结果的排序。</p>
+<p><img src="http://www.django-rest-framework.org/img/ordering-filter.png" alt="Ordering Filter"></p>
+<p>默认情况下，查询参数被命名为 <code>&#39;ordering&#39;</code>，但这可能会被 <code>ORDERING_PARAM</code> setting 覆盖。</p>
+<p>例如，要通过 username 对用户排序：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">http://example.com/api/users?ordering=username</div></pre></td></tr></table></figure>
+<p>客户端也可以通过在字段名称前加 ‘ - ‘ 来指定反向排序，如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">http://example.com/api/users?ordering=-username</div></pre></td></tr></table></figure>
+<p>也可以指定多个排序：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">http://example.com/api/users?ordering=account,username</div></pre></td></tr></table></figure>
+<h3 id="指定可以根据哪些字段进行排序"><a href="#指定可以根据哪些字段进行排序" class="headerlink" title="指定可以根据哪些字段进行排序"></a>指定可以根据哪些字段进行排序</h3><p>建议你明确指定 API 应该允许在排序过滤器中使用哪些字段。你可以通过在视图上设置一个 <code>ordering_fields</code> 属性来完成此操作，如下所示：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserListView</span><span class="params">(generics.ListAPIView)</span>:</span></div><div class="line">    queryset = User.objects.all()</div><div class="line">    serializer_class = UserSerializer</div><div class="line">    filter_backends = (filters.OrderingFilter,)</div><div class="line">    ordering_fields = (<span class="string">'username'</span>, <span class="string">'email'</span>)</div></pre></td></tr></table></figure>
+<p>这有助于防止意外的数据泄漏，例如允许用户根据密码哈希字段或其他敏感数据进行排序。</p>
+<p>如果你未在视图上指定 <code>ordering_fields</code> 属性，则过滤器类将默认允许用户过滤由 <code>serializer_class</code> 属性指定的序列化类中的任何可读字段。</p>
+<p>如果你确信视图使用的查询集不包含任何敏感数据，则还可以通过使用特殊值 <code>&#39;__all__&#39;</code> 明确指定视图允许在任何模型字段或查询集聚合上进行排序。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">BookingsListView</span><span class="params">(generics.ListAPIView)</span>:</span></div><div class="line">    queryset = Booking.objects.all()</div><div class="line">    serializer_class = BookingSerializer</div><div class="line">    filter_backends = (filters.OrderingFilter,)</div><div class="line">    ordering_fields = <span class="string">'__all__'</span></div></pre></td></tr></table></figure>
+<h3 id="指定默认顺序"><a href="#指定默认顺序" class="headerlink" title="指定默认顺序"></a>指定默认顺序</h3><p>如果在视图上设置了 <code>ordering</code> 属性，则将用作默认排序。</p>
+<p>通常情况下，你应该通过在初始查询集上设置 <code>order_by</code> 来控制此操作，但是通过在视图上使用 <code>ordering</code> 参数，你可以指定排序方式，然后可以将其作为上下文自动传递到渲染的模板。这可以自动渲染列标题，如果它们用于排序结果。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserListView</span><span class="params">(generics.ListAPIView)</span>:</span></div><div class="line">    queryset = User.objects.all()</div><div class="line">    serializer_class = UserSerializer</div><div class="line">    filter_backends = (filters.OrderingFilter,)</div><div class="line">    ordering_fields = (<span class="string">'username'</span>, <span class="string">'email'</span>)</div><div class="line">    ordering = (<span class="string">'username'</span>,)</div></pre></td></tr></table></figure>
+<p><code>ordering</code> 属性可以是一个字符串或者字符串列表（元组）。</p>
+<hr>
+<h2 id="DjangoObjectPermissionsFilter"><a href="#DjangoObjectPermissionsFilter" class="headerlink" title="DjangoObjectPermissionsFilter"></a>DjangoObjectPermissionsFilter</h2><p><code>DjangoObjectPermissionsFilter</code> 旨在与 <a href="https://django-guardian.readthedocs.io/" target="_blank" rel="external"><code>django-guardian</code></a> 软件包一起使用，添加了自定义 <code>&#39;view&#39;</code> 的权限。过滤器将确保查询集仅返回用户具有适当查看权限的对象。</p>
+<p>如果你使用的是 <code>DjangoObjectPermissionsFilter</code>，那么你可能还需要添加适当的对象权限类，以确保用户只有在具有适当对象权限的情况下才能对实例进行操作。做到这一点的最简单方法是继承 <code>DjangoObjectPermissions</code> 并为 <code>perms_map</code> 属性添加 <code>&#39;view&#39;</code> 权限。</p>
+<p>使用 <code>DjangoObjectPermissionsFilter</code> 和 <code>DjangoObjectPermissions</code> 的完整示例可能如下所示。</p>
+<p><strong>permissions.py</strong>:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">CustomObjectPermissions</span><span class="params">(permissions.DjangoObjectPermissions)</span>:</span></div><div class="line">    <span class="string">"""</span></div><div class="line"><span class="string">    Similar to `DjangoObjectPermissions`, but adding 'view' permissions.</span></div><div class="line"><span class="string">    """</span></div><div class="line">    perms_map = &#123;</div><div class="line">        <span class="string">'GET'</span>: [<span class="string">'%(app_label)s.view_%(model_name)s'</span>],</div><div class="line">        <span class="string">'OPTIONS'</span>: [<span class="string">'%(app_label)s.view_%(model_name)s'</span>],</div><div class="line">        <span class="string">'HEAD'</span>: [<span class="string">'%(app_label)s.view_%(model_name)s'</span>],</div><div class="line">        <span class="string">'POST'</span>: [<span class="string">'%(app_label)s.add_%(model_name)s'</span>],</div><div class="line">        <span class="string">'PUT'</span>: [<span class="string">'%(app_label)s.change_%(model_name)s'</span>],</div><div class="line">        <span class="string">'PATCH'</span>: [<span class="string">'%(app_label)s.change_%(model_name)s'</span>],</div><div class="line">        <span class="string">'DELETE'</span>: [<span class="string">'%(app_label)s.delete_%(model_name)s'</span>],</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p><strong>views.py</strong>:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">EventViewSet</span><span class="params">(viewsets.ModelViewSet)</span>:</span></div><div class="line">    <span class="string">"""</span></div><div class="line"><span class="string">    Viewset that only lists events if user has 'view' permissions, and only</span></div><div class="line"><span class="string">    allows operations on individual events if user has appropriate 'view', 'add',</span></div><div class="line"><span class="string">    'change' or 'delete' permissions.</span></div><div class="line"><span class="string">    """</span></div><div class="line">    queryset = Event.objects.all()</div><div class="line">    serializer_class = EventSerializer</div><div class="line">    filter_backends = (filters.DjangoObjectPermissionsFilter,)</div><div class="line">    permission_classes = (myapp.permissions.CustomObjectPermissions,)</div></pre></td></tr></table></figure>
+<hr>
+<h1 id="自定义通用过滤器"><a href="#自定义通用过滤器" class="headerlink" title="自定义通用过滤器"></a>自定义通用过滤器</h1><p>你还可以提供自己的通用过滤器后端，或者编写一个可供其他开发人员使用的可安装应用程序。</p>
+<p>为此，请继承 <code>BaseFilterBackend</code>，并覆盖 <code>.filter_queryset(self, request, queryset, view)</code> 方法。该方法应该返回一个新的，过滤的查询集。</p>
+<p>除了允许客户端执行搜索和过滤外，通用过滤器后端可用于限制哪些对象应该对给定的请求或用户可见。</p>
+<h2 id="举个栗子"><a href="#举个栗子" class="headerlink" title="举个栗子"></a>举个栗子</h2><p>你可能需要限制用户只能看到他们创建的对象。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">IsOwnerFilterBackend</span><span class="params">(filters.BaseFilterBackend)</span>:</span></div><div class="line">    <span class="string">"""</span></div><div class="line"><span class="string">    Filter that only allows users to see their own objects.</span></div><div class="line"><span class="string">    """</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">filter_queryset</span><span class="params">(self, request, queryset, view)</span>:</span></div><div class="line">        <span class="keyword">return</span> queryset.filter(owner=request.user)</div></pre></td></tr></table></figure>
+<p>我们可以通过覆盖视图上的 <code>get_queryset()</code>来实现相同的行为，但使用过滤器后端允许你更轻松地将此限制添加到多个视图，或者将其应用于整个 API。</p>
+<h2 id="自定义接口"><a href="#自定义接口" class="headerlink" title="自定义接口"></a>自定义接口</h2><p>通用过滤器也可以在可浏览的 API 中渲染接口。为此，你应该实现一个 <code>to_html()</code> 方法，该方法返回过滤器的渲染 HTML 表示。此方法应具有以下签名：</p>
+<p><code>to_html(self, request, queryset, view)</code></p>
+<p>该方法应该返回一个渲染的 HTML 字符串。</p>
+<h2 id="Pagination-amp-schemas"><a href="#Pagination-amp-schemas" class="headerlink" title="Pagination &amp; schemas"></a>Pagination &amp; schemas</h2><p>通过实现 <code>get_schema_fields()</code> 方法，你还可以使过滤器控件可用于 REST framework 提供的模式自动生成。此方法应具有以下签名：</p>
+<p><code>get_schema_fields(self, view)</code></p>
+<p>该方法应该返回一个 <code>coreapi.Field</code> 实例列表。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+      <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        
+
+      </div>
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>Enjoy it ? Donate me !  欣赏此文？求鼓励，求支持！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/reward/wechatpay.png" alt="arnolix wechatpay/微信支付"/>
+        <p>wechatpay/微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/reward/alipay.png" alt="arnolix alipay/支付宝"/>
+        <p>alipay/支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/filtering-restframework-djangoframework-drf-drf-filtering/" rel="tag"># filtering, restframework, djangoframework, drf, drf-filtering</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/06/20/nginx之location和rewrite详解/" rel="next" title="nginx之location和rewrite详解">
+                <i class="fa fa-chevron-left"></i> nginx之location和rewrite详解
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/20/requests/" rel="prev" title="requests">
+                requests <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!--MOB SHARE BEGIN-->
+<div class="-mob-share-ui-button -mob-share-open">分享</div>
+<div class="-mob-share-ui" style="display: none">
+    <ul class="-mob-share-list">
+        <li class="-mob-share-weibo"><p>新浪微博</p></li>
+        <li class="-mob-share-tencentweibo"><p>腾讯微博</p></li>
+        <li class="-mob-share-qzone"><p>QQ空间</p></li>
+        <li class="-mob-share-qq"><p>QQ好友</p></li>
+        <li class="-mob-share-weixin"><p>微信</p></li>
+        <li class="-mob-share-douban"><p>豆瓣</p></li>
+        <li class="-mob-share-renren"><p>人人网</p></li>
+        <li class="-mob-share-kaixin"><p>开心网</p></li>
+        <li class="-mob-share-facebook"><p>Facebook</p></li>
+        <li class="-mob-share-twitter"><p>Twitter</p></li>
+        <li class="-mob-share-pocket"><p>Pocket</p></li>
+        <li class="-mob-share-google"><p>Google+</p></li>
+        <li class="-mob-share-youdao"><p>有道云笔记</p></li>
+        <li class="-mob-share-mingdao"><p>明道</p></li>
+        <li class="-mob-share-pengyou"><p>朋友网</p></li>
+        <li class="-mob-share-tumblr"><p>Tumblr</p></li>
+        <li class="-mob-share-instapaper"><p>Instapaper</p></li>
+        <li class="-mob-share-linkedin"><p>LinkedIn</p></li>
+    </ul>
+    <div class="-mob-share-close">取消</div>
+</div>
+<div class="-mob-share-ui-bg"></div>
+<script id="-mob-share" src="//f1.webshare.mob.com/code/mob-share.js?appkey=2169bf5b393ca"></script>
+<!--MOB SHARE END-->
+
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8zMTE3NC83NzIz"></div>
+    </div>
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/biezheng.png"
+                alt="arnolix" />
+            
+              <p class="site-author-name" itemprop="name">arnolix</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#过滤"><span class="nav-number">1.</span> <span class="nav-text">过滤</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#根据当前用户进行过滤"><span class="nav-number">1.1.</span> <span class="nav-text">根据当前用户进行过滤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#根据-URL-进行过滤"><span class="nav-number">1.2.</span> <span class="nav-text">根据 URL 进行过滤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#根据查询参数进行过滤"><span class="nav-number">1.3.</span> <span class="nav-text">根据查询参数进行过滤</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#通用过滤器"><span class="nav-number">2.</span> <span class="nav-text">通用过滤器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#设置过滤器后端"><span class="nav-number">2.1.</span> <span class="nav-text">设置过滤器后端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#过滤和对象查找"><span class="nav-number">2.2.</span> <span class="nav-text">过滤和对象查找</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#覆盖初始查询集"><span class="nav-number">2.3.</span> <span class="nav-text">覆盖初始查询集</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#API-参考"><span class="nav-number">3.</span> <span class="nav-text">API 参考</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#DjangoFilterBackend"><span class="nav-number">3.1.</span> <span class="nav-text">DjangoFilterBackend</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SearchFilter"><span class="nav-number">3.2.</span> <span class="nav-text">SearchFilter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OrderingFilter"><span class="nav-number">3.3.</span> <span class="nav-text">OrderingFilter</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#指定可以根据哪些字段进行排序"><span class="nav-number">3.3.1.</span> <span class="nav-text">指定可以根据哪些字段进行排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#指定默认顺序"><span class="nav-number">3.3.2.</span> <span class="nav-text">指定默认顺序</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DjangoObjectPermissionsFilter"><span class="nav-number">3.4.</span> <span class="nav-text">DjangoObjectPermissionsFilter</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#自定义通用过滤器"><span class="nav-number">4.</span> <span class="nav-text">自定义通用过滤器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#举个栗子"><span class="nav-number">4.1.</span> <span class="nav-text">举个栗子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义接口"><span class="nav-number">4.2.</span> <span class="nav-text">自定义接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pagination-amp-schemas"><span class="nav-number">4.3.</span> <span class="nav-text">Pagination & schemas</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2017 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">xuaibao</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user">本站访客数</i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye">本站总访问数</i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("uuE7RULgw0fx1p8jLesrbYBP-gzGzoHsz", "MQ4GrFlRns4KQWiFMpvIXLDj");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/src/exturl.js?v=5.1.3"></script>
+
+
+</body>
+</html>

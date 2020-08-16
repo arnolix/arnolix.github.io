@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="kubernetes," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="创建TLS证书和秘钥kubernetes系统各组件需要使用TLS证书对通信进行加密，本文档使用CloudFlare的PKI工具集cfssl来生成Certificate Authority(CA)证书和秘钥文件，CA 是自签名的证书，用来签名后续创建的其它TLS证书。 安装 CFSSL1234# wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 -O">
+<meta name="keywords" content="kubernetes">
+<meta property="og:type" content="article">
+<meta property="og:title" content="创建TLS证书和秘钥">
+<meta property="og:url" content="http://www.arnolix.com/2018/01/27/创建TLS证书和秘钥/index.html">
+<meta property="og:site_name" content="arnolix&#39;s silence">
+<meta property="og:description" content="创建TLS证书和秘钥kubernetes系统各组件需要使用TLS证书对通信进行加密，本文档使用CloudFlare的PKI工具集cfssl来生成Certificate Authority(CA)证书和秘钥文件，CA 是自签名的证书，用来签名后续创建的其它TLS证书。 安装 CFSSL1234# wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 -O">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-01-27T12:55:18.353Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="创建TLS证书和秘钥">
+<meta name="twitter:description" content="创建TLS证书和秘钥kubernetes系统各组件需要使用TLS证书对通信进行加密，本文档使用CloudFlare的PKI工具集cfssl来生成Certificate Authority(CA)证书和秘钥文件，CA 是自签名的证书，用来签名后续创建的其它TLS证书。 安装 CFSSL1234# wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 -O">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.arnolix.com/2018/01/27/创建TLS证书和秘钥/"/>
+
+
+
+
+
+  <title>创建TLS证书和秘钥 | arnolix's silence</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">arnolix's silence</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">你的努力决定了你的下限，你的格局决定了你的上限。</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.arnolix.com/2018/01/27/创建TLS证书和秘钥/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="xuaibao">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/biezheng.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="arnolix's silence">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">创建TLS证书和秘钥</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-27T20:55:18+08:00">
+                2018-01-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/kubernetes/" itemprop="url" rel="index">
+                    <span itemprop="name">kubernetes</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/01/27/创建TLS证书和秘钥/" class="leancloud_visitors" data-flag-title="创建TLS证书和秘钥">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="创建TLS证书和秘钥"><a href="#创建TLS证书和秘钥" class="headerlink" title="创建TLS证书和秘钥"></a>创建TLS证书和秘钥</h1><p><code>kubernetes</code>系统各组件需要使用<code>TLS</code>证书对通信进行加密，本文档使用<code>CloudFlare</code>的PKI工具集<a href="https://github.com/cloudflare/cfssl" target="_blank" rel="external">cfssl</a>来生成Certificate Authority(CA)证书和秘钥文件，CA 是自签名的证书，用来签名后续创建的其它TLS证书。</p>
+<h2 id="安装-CFSSL"><a href="#安装-CFSSL" class="headerlink" title="安装 CFSSL"></a>安装 <code>CFSSL</code></h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 -O /usr/local/bin/cfssl</span></div><div class="line"><span class="comment"># wget https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64 -O /usr/local/bin/cfssljson</span></div><div class="line"><span class="comment"># wget https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64 -O /usr/local/bin/cfssl-certinfo</span></div><div class="line"><span class="comment"># chmod +x /usr/local/bin/cfssl*</span></div></pre></td></tr></table></figure>
+<h2 id="创建CA-Certificate-Authority"><a href="#创建CA-Certificate-Authority" class="headerlink" title="创建CA(Certificate Authority)"></a>创建CA(Certificate Authority)</h2><p>创建CA配置文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># cfssl print-defaults config &gt; ca-config.json</span></div><div class="line"><span class="comment"># cat ca-config.json</span></div><div class="line">&#123;</div><div class="line">  <span class="string">"signing"</span>: &#123;</div><div class="line">    <span class="string">"default"</span>: &#123;</div><div class="line">      <span class="string">"expiry"</span>: <span class="string">"87600h"</span></div><div class="line">    &#125;,</div><div class="line">    <span class="string">"profiles"</span>: &#123;</div><div class="line">      <span class="string">"kubernetes"</span>: &#123;</div><div class="line">        <span class="string">"usages"</span>: [</div><div class="line">            <span class="string">"signing"</span>,</div><div class="line">            <span class="string">"key encipherment"</span>,</div><div class="line">            <span class="string">"server auth"</span>,</div><div class="line">            <span class="string">"client auth"</span></div><div class="line">        ],</div><div class="line">        <span class="string">"expiry"</span>: <span class="string">"87600h"</span></div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>创建CA证书签名请求</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># cfssl print-defaults csr &gt; ca-csr.json </span></div><div class="line"><span class="comment"># cat ca-csr.json </span></div><div class="line">&#123;</div><div class="line">  <span class="string">"CN"</span>: <span class="string">"kubernetes"</span>,</div><div class="line">  <span class="string">"key"</span>: &#123;</div><div class="line">    <span class="string">"algo"</span>: <span class="string">"rsa"</span>,</div><div class="line">    <span class="string">"size"</span>: 2048</div><div class="line">  &#125;,</div><div class="line">  <span class="string">"names"</span>: [</div><div class="line">    &#123;</div><div class="line">      <span class="string">"C"</span>: <span class="string">"CN"</span>,</div><div class="line">      <span class="string">"ST"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"L"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"O"</span>: <span class="string">"k8s"</span>,</div><div class="line">      <span class="string">"OU"</span>: <span class="string">"System"</span></div><div class="line">    &#125;</div><div class="line">  ]</div><div class="line">&#125;</div><div class="line"><span class="comment"># cfssl gencert -initca ca-csr.json | cfssljson -bare ca</span></div></pre></td></tr></table></figure>
+<h2 id="创建kube-apiserver证书"><a href="#创建kube-apiserver证书" class="headerlink" title="创建kube-apiserver证书"></a>创建kube-apiserver证书</h2><p>创建kube-apiserver证书签名请求</p>
+<p>注意：默认kube-apiserver证书没有权限访问API接口, 会提示: Unauthorized</p>
+<p>注意：如果kube-apiserver证书访问API接口, 需要设置: [“O”: “system:masters”]</p>
+<p>注意：此处需要将dns ip(首个IP地址)、etcd、k8s-master节点的ip全部加上.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># cfssl print-defaults csr &gt; kubernetes-csr.json</span></div><div class="line"><span class="comment"># cat kube-apiserver-csr.json </span></div><div class="line">&#123;</div><div class="line">    <span class="string">"CN"</span>: <span class="string">"kubernetes"</span>,</div><div class="line">    <span class="string">"hosts"</span>: [</div><div class="line">      <span class="string">"127.0.0.1"</span>,</div><div class="line">      <span class="string">"172.21.0.1"</span>,</div><div class="line">      <span class="string">"172.16.30.171"</span>,</div><div class="line">      <span class="string">"172.16.30.172"</span>,</div><div class="line">      <span class="string">"172.16.30.173"</span>,</div><div class="line">      <span class="string">"kubernetes"</span>,</div><div class="line">      <span class="string">"kubernetes.default"</span>,</div><div class="line">      <span class="string">"kubernetes.default.svc"</span>,</div><div class="line">      <span class="string">"kubernetes.default.svc.cluster"</span>,</div><div class="line">      <span class="string">"kubernetes.default.svc.cluster.local"</span></div><div class="line">    ],</div><div class="line">    <span class="string">"key"</span>: &#123;</div><div class="line">        <span class="string">"algo"</span>: <span class="string">"rsa"</span>,</div><div class="line">        <span class="string">"size"</span>: 2048</div><div class="line">    &#125;,</div><div class="line">    <span class="string">"names"</span>: [</div><div class="line">        &#123;</div><div class="line">            <span class="string">"C"</span>: <span class="string">"CN"</span>,</div><div class="line">            <span class="string">"ST"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">            <span class="string">"L"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">            <span class="string">"O"</span>: <span class="string">"k8s"</span>,</div><div class="line">            <span class="string">"OU"</span>: <span class="string">"System"</span></div><div class="line">        &#125;</div><div class="line">    ]</div><div class="line">&#125;</div><div class="line">``` </div><div class="line"></div><div class="line">生成kubernetes证书和私钥</div><div class="line"></div><div class="line">``` bash</div><div class="line"><span class="comment"># cfssl gencert -ca=ca.pem \</span></div><div class="line">                -ca-key=ca-key.pem \</div><div class="line">                -config=ca-config.json \</div><div class="line">                -profile=kubernetes kube-apiserver-csr.json | cfssljson -bare kube-apiserver</div></pre></td></tr></table></figure>
+<h2 id="创建kube-controller-manager证书"><a href="#创建kube-controller-manager证书" class="headerlink" title="创建kube-controller-manager证书"></a>创建kube-controller-manager证书</h2><p>创建kube-controller-manager证书签名请求</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># cfssl print-defaults csr &gt; kube-controller-manager-csr.json </span></div><div class="line"><span class="comment"># cat kube-controller-manager-csr.json </span></div><div class="line">&#123;</div><div class="line">  <span class="string">"CN"</span>: <span class="string">"system:kube-controller-manager"</span>,</div><div class="line">  <span class="string">"hosts"</span>: [],</div><div class="line">  <span class="string">"key"</span>: &#123;</div><div class="line">    <span class="string">"algo"</span>: <span class="string">"rsa"</span>,</div><div class="line">    <span class="string">"size"</span>: 2048</div><div class="line">  &#125;,</div><div class="line">  <span class="string">"names"</span>: [</div><div class="line">    &#123;</div><div class="line">      <span class="string">"C"</span>: <span class="string">"CN"</span>,</div><div class="line">      <span class="string">"ST"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"L"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"O"</span>: <span class="string">"system:kube-controller-manager"</span>,</div><div class="line">      <span class="string">"OU"</span>: <span class="string">"System"</span></div><div class="line">    &#125;</div><div class="line">  ]</div><div class="line">&#125;</div><div class="line">``` </div><div class="line">生成kube-controller-manager证书和私钥</div><div class="line"></div><div class="line">``` bash</div><div class="line"><span class="comment"># cfssl gencert -ca=ca.pem \</span></div><div class="line">                -ca-key=ca-key.pem \</div><div class="line">                -config=ca-config.json \</div><div class="line">                -profile=kubernetes kube-controller-manager-csr.json | cfssljson -bare kube-controller-manager</div></pre></td></tr></table></figure>
+<h2 id="创建kube-scheduler证书"><a href="#创建kube-scheduler证书" class="headerlink" title="创建kube-scheduler证书"></a>创建kube-scheduler证书</h2><p>创建kube-scheduler证书签名请求</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># cfssl print-defaults csr &gt; admin-csr.json </span></div><div class="line"><span class="comment"># cat kube-scheduler-csr.json </span></div><div class="line">&#123;</div><div class="line">  <span class="string">"CN"</span>: <span class="string">"system:kube-scheduler"</span>,</div><div class="line">  <span class="string">"hosts"</span>: [],</div><div class="line">  <span class="string">"key"</span>: &#123;</div><div class="line">    <span class="string">"algo"</span>: <span class="string">"rsa"</span>,</div><div class="line">    <span class="string">"size"</span>: 2048</div><div class="line">  &#125;,</div><div class="line">  <span class="string">"names"</span>: [</div><div class="line">    &#123;</div><div class="line">      <span class="string">"C"</span>: <span class="string">"CN"</span>,</div><div class="line">      <span class="string">"ST"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"L"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"O"</span>: <span class="string">"system:kube-scheduler"</span>,</div><div class="line">      <span class="string">"OU"</span>: <span class="string">"System"</span></div><div class="line">    &#125;</div><div class="line">  ]</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>生成kube-scheduler证书和私钥</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># cfssl gencert -ca=ca.pem \</span></div><div class="line">                -ca-key=ca-key.pem \</div><div class="line">                -config=ca-config.json \</div><div class="line">                -profile=kubernetes kube-scheduler-csr.json | cfssljson -bare kube-scheduler</div></pre></td></tr></table></figure>
+<h2 id="创建kubelet证书"><a href="#创建kubelet证书" class="headerlink" title="创建kubelet证书"></a>创建kubelet证书</h2><p>创建kubelet证书签名请求</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># cat &gt; kubelet-csr.json &lt;&lt; EOF</span></div><div class="line">&#123;</div><div class="line">  <span class="string">"CN"</span>: <span class="string">"kubelet"</span>,</div><div class="line">  <span class="string">"hosts"</span>: [],</div><div class="line">  <span class="string">"key"</span>: &#123;</div><div class="line">    <span class="string">"algo"</span>: <span class="string">"rsa"</span>,</div><div class="line">    <span class="string">"size"</span>: 2048</div><div class="line">  &#125;,</div><div class="line">  <span class="string">"names"</span>: [</div><div class="line">    &#123;</div><div class="line">      <span class="string">"C"</span>: <span class="string">"CN"</span>,</div><div class="line">      <span class="string">"ST"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"L"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"O"</span>: <span class="string">"system:masters"</span>,</div><div class="line">      <span class="string">"OU"</span>: <span class="string">"System"</span></div><div class="line">    &#125;</div><div class="line">  ]</div><div class="line">&#125;</div><div class="line">EOF</div></pre></td></tr></table></figure>
+<p>生成kubelet证书和私钥</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">cfssl gencert -ca=ca.pem \</div><div class="line">              -ca-key=ca-key.pem \</div><div class="line">              -config=ca-config.json \</div><div class="line">              -profile=kubernetes kubelet-csr.json | cfssljson -bare kubelet</div></pre></td></tr></table></figure>
+<h2 id="创建kube-proxy证书"><a href="#创建kube-proxy证书" class="headerlink" title="创建kube-proxy证书"></a>创建kube-proxy证书</h2><p>创建kube-proxy证书签名请求</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># cfssl print-defaults csr &gt; kube-proxy-csr.json</span></div><div class="line"><span class="comment"># cat kube-proxy-csr.json</span></div><div class="line">&#123;</div><div class="line">  <span class="string">"CN"</span>: <span class="string">"system:kube-proxy"</span>,</div><div class="line">  <span class="string">"hosts"</span>: [],</div><div class="line">  <span class="string">"key"</span>: &#123;</div><div class="line">    <span class="string">"algo"</span>: <span class="string">"rsa"</span>,</div><div class="line">    <span class="string">"size"</span>: 2048</div><div class="line">  &#125;,</div><div class="line">  <span class="string">"names"</span>: [</div><div class="line">    &#123;</div><div class="line">      <span class="string">"C"</span>: <span class="string">"CN"</span>,</div><div class="line">      <span class="string">"ST"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"L"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"O"</span>: <span class="string">"system:node-proxier"</span>,</div><div class="line">      <span class="string">"OU"</span>: <span class="string">"System"</span></div><div class="line">    &#125;</div><div class="line">  ]</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>生成kube-proxy客户端证书和私钥</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># cfssl gencert -ca=ca.pem \</span></div><div class="line">                -ca-key=ca-key.pem \</div><div class="line">                -config=ca-config.json \</div><div class="line">                -profile=kubernetes kube-proxy-csr.json | cfssljson -bare kube-proxy</div></pre></td></tr></table></figure>
+<h2 id="证书校验"><a href="#证书校验" class="headerlink" title="证书校验"></a>证书校验</h2><p>校验kube-apiserver证书</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># cfssl-certinfo -cert kube-apiserver.pem</span></div><div class="line">&#123;</div><div class="line">  <span class="string">"subject"</span>: &#123;</div><div class="line">    <span class="string">"common_name"</span>: <span class="string">"kubernetes"</span>,</div><div class="line">    <span class="string">"country"</span>: <span class="string">"CN"</span>,</div><div class="line">    <span class="string">"organization"</span>: <span class="string">"system:masters"</span>,</div><div class="line">    <span class="string">"organizational_unit"</span>: <span class="string">"System"</span>,</div><div class="line">    <span class="string">"locality"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">    <span class="string">"province"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">    <span class="string">"names"</span>: [</div><div class="line">      <span class="string">"CN"</span>,</div><div class="line">      <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"system:masters"</span>,</div><div class="line">      <span class="string">"System"</span>,</div><div class="line">      <span class="string">"kubernetes"</span></div><div class="line">    ]</div><div class="line">  &#125;,</div><div class="line">  <span class="string">"issuer"</span>: &#123;</div><div class="line">    <span class="string">"common_name"</span>: <span class="string">"kubernetes"</span>,</div><div class="line">    <span class="string">"country"</span>: <span class="string">"CN"</span>,</div><div class="line">    <span class="string">"organization"</span>: <span class="string">"k8s"</span>,</div><div class="line">    <span class="string">"organizational_unit"</span>: <span class="string">"System"</span>,</div><div class="line">    <span class="string">"locality"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">    <span class="string">"province"</span>: <span class="string">"BeiJing"</span>,</div><div class="line">    <span class="string">"names"</span>: [</div><div class="line">      <span class="string">"CN"</span>,</div><div class="line">      <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"BeiJing"</span>,</div><div class="line">      <span class="string">"k8s"</span>,</div><div class="line">      <span class="string">"System"</span>,</div><div class="line">      <span class="string">"kubernetes"</span></div><div class="line">    ]</div><div class="line">  &#125;,</div><div class="line">  <span class="string">"serial_number"</span>: <span class="string">"533666226632105718421042600083075622217402341392"</span>,</div><div class="line">  <span class="string">"sans"</span>: [</div><div class="line">    <span class="string">"kubernetes"</span>,</div><div class="line">    <span class="string">"kubernetes.default"</span>,</div><div class="line">    <span class="string">"kubernetes.default.svc"</span>,</div><div class="line">    <span class="string">"kubernetes.default.svc.cluster"</span>,</div><div class="line">    <span class="string">"kubernetes.default.svc.cluster.local"</span>,</div><div class="line">    <span class="string">"127.0.0.1"</span>,</div><div class="line">    <span class="string">"172.21.0.1"</span>,</div><div class="line">    <span class="string">"172.16.30.171"</span>,</div><div class="line">    <span class="string">"172.16.30.172"</span>,</div><div class="line">    <span class="string">"172.16.30.173"</span></div><div class="line">  ],</div><div class="line">  <span class="string">"not_before"</span>: <span class="string">"2017-07-31T08:57:00Z"</span>,</div><div class="line">  <span class="string">"not_after"</span>: <span class="string">"2018-07-31T08:57:00Z"</span>,</div><div class="line">  <span class="string">"sigalg"</span>: <span class="string">"SHA256WithRSA"</span>,</div><div class="line">  <span class="string">"authority_key_id"</span>: <span class="string">"6B:68:CF:57:62:6B:60:7E:F3:2C:AC:1A:20:6F:27:6A:EA:84:98:A8"</span>,</div><div class="line">  <span class="string">"subject_key_id"</span>: <span class="string">"3C:6C:67:14:69:F8:42:2A:5C:3C:28:65:B6:A3:95:80:49:A6:6:C"</span>,</div><div class="line">  <span class="string">"pem"</span>: <span class="string">"-----BEGIN CERTIFICATE-----</span></div><div class="line"><span class="string">MIIEkDCCA3igAwIBAgIUEdNzDqRQMswGL4KikzjnizkfBS4wDQYJKoZIhvcNAQEL</span></div><div class="line"><span class="string">BQAwZTELMAkGA1UEBhMCQ04xEDAOBgNVBAgTB0JlaUppbmcxEDAOBgNVBAcTB0Jl</span></div><div class="line"><span class="string">aUppbmcxDDAKBgNVBAoTA2s4czEPMA0GA1UECxMGU3lzdGVtMRMwEQYDVQQDEwpr</span></div><div class="line"><span class="string">dWJlcm5ldGVzMB4XDTE3MDcyNzA5MjcwMFoXDTE4MDcyNzA5MjcwMFowcDELMAkG</span></div><div class="line"><span class="string">A1UEBhMCQ04xEDAOBgNVBAgTB0JlaUppbmcxEDAOBgNVBAcTB0JlaUppbmcxFzAV</span></div><div class="line"><span class="string">BgNVBAoTDnN5c3RlbTptYXN0ZXJzMQ8wDQYDVQQLEwZTeXN0ZW0xEzARBgNVBAMT</span></div><div class="line"><span class="string">Cmt1YmVybmV0ZXMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQClXFE1</span></div><div class="line"><span class="string">qVQ9HiHDEbyfDMqsrO8p0Rn02ta+xWAbmJhwgNstFfuW0Lz9XmtpclDRfF2U5QOJ</span></div><div class="line"><span class="string">X7TrTZz2xhjRxXzUb/4EU035VH273tb+3+orUbggMcUzavpbm0zFqqSeSTxIoWhw</span></div><div class="line"><span class="string">wiIUG33BR7i6kvyH7eHraq/vYn8NbG2t8ufoJFgPys6zjC9rDWqNlBXume69n8BD</span></div><div class="line"><span class="string">HTfDQUgUVLZDDZyef+KwvtziHUtEgEakaI9MgDV3CdkMAvXrnIeiMHQzRBen3gli</span></div><div class="line"><span class="string">zk4i+OCWd9oI7cB7oqvXUm+pTEAzOPQaGkkq7A2R8UHTFgOyAkw8saKwRvBacWhm</span></div><div class="line"><span class="string">BDa/+CVYKfiNBzDRAgMBAAGjggErMIIBJzAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0l</span></div><div class="line"><span class="string">BBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYE</span></div><div class="line"><span class="string">FHfVB5vi0gEh2rGjBzWVr9+2Jrs9MB8GA1UdIwQYMBaAFGHhP32/2ThF4VlOuaKj</span></div><div class="line"><span class="string">iKbG/CMcMIGnBgNVHREEgZ8wgZyCCmt1YmVybmV0ZXOCEmt1YmVybmV0ZXMuZGVm</span></div><div class="line"><span class="string">YXVsdIIWa3ViZXJuZXRlcy5kZWZhdWx0LnN2Y4Iea3ViZXJuZXRlcy5kZWZhdWx0</span></div><div class="line"><span class="string">LnN2Yy5jbHVzdGVygiRrdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9j</span></div><div class="line"><span class="string">YWyHBH8AAAGHBAr+AAGHBMCoA1+HBMCoA2CHBMCoA2MwDQYJKoZIhvcNAQELBQAD</span></div><div class="line"><span class="string">ggEBABlTNX+MVTfViozPrwH6QkXfbHTH9kpsm9SPZhpzjON4pAcY5kP3t6DInX9D</span></div><div class="line"><span class="string">SdivyuVn3jJz6BaBIoUh5RJRsq6ArMpbl1g7dyZnHZXPjLtMAFYGgnBjH6XVEQ1f</span></div><div class="line"><span class="string">FZbSZjvbti/l7SH7f9aqtywzqNCDqmwx+2gNoWwd11y0A7zxMVK28l6apbMfcVHL</span></div><div class="line"><span class="string">rHLKikoV+sLmvKCLdh7/qrTToono0j5nMzuQWfNU3UsNHOZZ1uNUQsuurv95LUWG</span></div><div class="line"><span class="string">5t3PKpRoi0Z5kePBdLoD1CHqS1DEPkZt+sj6e6vqQSBAM8usNEUwi7ASOY2zAaMG</span></div><div class="line"><span class="string">aDz1i4/WZhJSUQyDfx7HzJpAmBE=</span></div><div class="line"><span class="string">-----END CERTIFICATE-----"</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="分发证书"><a href="#分发证书" class="headerlink" title="分发证书"></a>分发证书</h2><p>将<code>TLS</code>证书拷贝到<code>Kubernetes Master</code>和<code>Kubernetes node</code>的配置目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># mkdir -p /etc/kubernetes/ssl &amp;&amp; cp /tmp/ssl/*.pem /etc/kubernetes/ssl</span></div></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+      <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        
+
+      </div>
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>Enjoy it ? Donate me !  欣赏此文？求鼓励，求支持！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/reward/wechatpay.png" alt="xuaibao wechatpay/微信支付"/>
+        <p>wechatpay/微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/reward/alipay.png" alt="xuaibao alipay/支付宝"/>
+        <p>alipay/支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/kubernetes/" rel="tag"># kubernetes</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/11/18/nginx-001/" rel="next" title="nginx优化之nopush,sendfile,https,keepalive等">
+                <i class="fa fa-chevron-left"></i> nginx优化之nopush,sendfile,https,keepalive等
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/01/27/搭建Alertmanager服务/" rel="prev" title="搭建Alertmanager服务">
+                搭建Alertmanager服务 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!--MOB SHARE BEGIN-->
+<div class="-mob-share-ui-button -mob-share-open">分享</div>
+<div class="-mob-share-ui" style="display: none">
+    <ul class="-mob-share-list">
+        <li class="-mob-share-weibo"><p>新浪微博</p></li>
+        <li class="-mob-share-tencentweibo"><p>腾讯微博</p></li>
+        <li class="-mob-share-qzone"><p>QQ空间</p></li>
+        <li class="-mob-share-qq"><p>QQ好友</p></li>
+        <li class="-mob-share-weixin"><p>微信</p></li>
+        <li class="-mob-share-douban"><p>豆瓣</p></li>
+        <li class="-mob-share-renren"><p>人人网</p></li>
+        <li class="-mob-share-kaixin"><p>开心网</p></li>
+        <li class="-mob-share-facebook"><p>Facebook</p></li>
+        <li class="-mob-share-twitter"><p>Twitter</p></li>
+        <li class="-mob-share-pocket"><p>Pocket</p></li>
+        <li class="-mob-share-google"><p>Google+</p></li>
+        <li class="-mob-share-youdao"><p>有道云笔记</p></li>
+        <li class="-mob-share-mingdao"><p>明道</p></li>
+        <li class="-mob-share-pengyou"><p>朋友网</p></li>
+        <li class="-mob-share-tumblr"><p>Tumblr</p></li>
+        <li class="-mob-share-instapaper"><p>Instapaper</p></li>
+        <li class="-mob-share-linkedin"><p>LinkedIn</p></li>
+    </ul>
+    <div class="-mob-share-close">取消</div>
+</div>
+<div class="-mob-share-ui-bg"></div>
+<script id="-mob-share" src="//f1.webshare.mob.com/code/mob-share.js?appkey=2169bf5b393ca"></script>
+<!--MOB SHARE END-->
+
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8zMTE3NC83NzIz"></div>
+    </div>
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/biezheng.png"
+                alt="xuaibao" />
+            
+              <p class="site-author-name" itemprop="name">xuaibao</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#创建TLS证书和秘钥"><span class="nav-number">1.</span> <span class="nav-text">创建TLS证书和秘钥</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装-CFSSL"><span class="nav-number">1.1.</span> <span class="nav-text">安装 CFSSL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建CA-Certificate-Authority"><span class="nav-number">1.2.</span> <span class="nav-text">创建CA(Certificate Authority)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建kube-apiserver证书"><span class="nav-number">1.3.</span> <span class="nav-text">创建kube-apiserver证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建kube-controller-manager证书"><span class="nav-number">1.4.</span> <span class="nav-text">创建kube-controller-manager证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建kube-scheduler证书"><span class="nav-number">1.5.</span> <span class="nav-text">创建kube-scheduler证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建kubelet证书"><span class="nav-number">1.6.</span> <span class="nav-text">创建kubelet证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建kube-proxy证书"><span class="nav-number">1.7.</span> <span class="nav-text">创建kube-proxy证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#证书校验"><span class="nav-number">1.8.</span> <span class="nav-text">证书校验</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分发证书"><span class="nav-number">1.9.</span> <span class="nav-text">分发证书</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2017 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">xuaibao</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user">本站访客数</i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye">本站总访问数</i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("uuE7RULgw0fx1p8jLesrbYBP-gzGzoHsz", "MQ4GrFlRns4KQWiFMpvIXLDj");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/src/exturl.js?v=5.1.3"></script>
+
+
+</body>
+</html>
